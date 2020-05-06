@@ -1,0 +1,369 @@
+---
+title: "Modeling and visualization"
+author: "Jae Yeon Kim"
+output:
+  html_document:
+    toc: yes
+  pdf_document:
+    toc: yes
+---
+
+## 0. Setup 
+
+```{r}
+
+# Clean up the environment
+
+rm(list = ls())
+
+# Import pacakges 
+
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+        tidyverse, # for the tidyverse framework
+        patchwork, # for arranging ggplots 
+        desc, # for descriptive stat analysis
+        ggpubr, # for arranging ggplots 
+        ggthemes, # for fancy ggplot themes
+        broom, # for modeling
+        ggfortify, # extended version of ggplot 
+        ggsci, # for color palette
+        Hmisc, # for capitalization
+        rsample, # for bootstrapping 
+        purrr, # functional programming tools 
+        strapgod, # for bootstrapping
+        gmodels # for confidence intervals 
+        )
+
+# for visualizing uncertainty 
+devtools::install_github("wilkelab/ungeviz")
+
+library(ungeviz)
+
+```
+
+
+## 1. Load files
+
+```{r}
+
+# All predictioned classes (race, gender, and party ID) were merged into this one CSV file 
+
+merged <- read_csv("/home/jae/bias-in-ml/twitter/processed_data/Final_Predictions.csv")[,-1]
+
+glimpse(merged)
+
+```
+
+## 2. Clean and wrangle data 
+
+```{r}
+
+# Rename columns 
+
+df <- merged %>%
+  # Select columns 
+  select(
+#################### DV ####################
+    "Type", 
+#################### IV or Moderating Variables #################### 
+    "Racial Demographic (All)", "Logistic Model Results", "Personal Attack?", "Political Leaning", "Number of Votes") %>%
+  # Rename (intuitive new col names = old col names)
+  rename(race = "Racial Demographic (All)",
+         gender = "Logistic Model Results",
+         personal_attack = "Personal Attack?",
+         party_id = "Political Leaning",
+  # Also, I prefer lower case
+         type = "Type",
+         votes = "Number of Votes")
+
+# Recode values 
+
+df <- df %>%
+  mutate(race = recode(race, 
+                       `0` = "Other", 
+                       `1` = "African American", 
+                       `2` = "White"),
+         type = capitalize(type))
+
+# Convert data type 
+
+df <- df %>%
+  # Turn column into factor 
+  sapply(as.factor) %>%  
+  # Turn a matrix into a dataframe
+  as.data.frame()
+
+# Reorder race values 
+
+levels(df$race) <- c("White","African American","Other")
+
+```
+
+## 3. Exploratory data analysis
+
+```{r}
+
+# Crosstabs 
+
+table(df$race)
+table(df$race, df$type)
+
+```
+
+```{r}
+
+# Subset 
+
+df <- df %>%
+  filter(race %in% c("White", "African American"), 
+         gender %in% c("male", "female")) 
+  
+# How race interacts with gender
+
+gender_plot <- df %>%
+  group_by(race, gender, type) %>%
+  dplyr::summarize(n = n()) %>% 
+  mutate(prop = n / sum(n),
+         prop = round(prop,2)) %>% 
+  filter(type %in% c("Abusive", "Normal", "Hateful")) %>%
+  unite(race_gender, c("race", "gender")) %>%
+  mutate(race_gender = str_replace(race_gender, "_", " ")) %>%
+  ggplot(aes(x = race_gender, y = prop, fill = type)) +
+    geom_col(position = "fill") +
+    labs(title = "How race interacts with gender", 
+         y = "Proportion", 
+         x = "Subgroup",
+         fill = "Type",
+         caption = "Founta et al. 2018 and the authors") +
+    theme_pubr() +
+    coord_flip() +
+    scale_fill_npg()
+
+ggsave("/home/jae/bias-in-ml/twitter/outputs/race_gender.png", gender_plot, width = 7, height = 5)
+
+# How race interacts with party ID
+
+party_plot <- df %>%
+  group_by(race, party_id, type) %>%
+  dplyr::summarize(n = n()) %>% 
+  mutate(prop = n / sum(n),
+         prop = round(prop,2)) %>% 
+  filter(type %in% c("Abusive", "Normal", "Hateful")) %>%
+  unite(race_party, c("race", "party_id")) %>%
+  mutate(race_party = str_replace(race_party, "_", " ")) %>%
+  ggplot(aes(x = race_party, y = prop, fill = type)) +
+    geom_col(position = "fill") +
+    labs(title = "How race interacts with party ID", 
+         y = "Proportion", 
+         x = "Subgroup",
+         fill = "Type",
+         caption = "Founta et al. 2018 and the authors") +
+    theme_pubr() +
+    coord_flip() +
+    scale_fill_npg()
+
+ggsave("/home/jae/bias-in-ml/twitter/outputs/race_party.png", party_plot, width = 7, height = 5)
+
+ggarrange(gender_plot, party_plot, ncol = 1, nrow = 2,
+          common.legend = TRUE)
+
+ggsave("/home/jae/bias-in-ml/twitter/outputs/desc_combined.png", height = 5, width = 7)
+
+```
+
+## 4. Modeling and visualization
+
+```{r}
+
+# DVs
+
+df <- df %>%
+  mutate(hateful = ifelse(type == "Hateful", 1, 0),
+         abusive = ifelse(type == "Abusive", 1, 0),
+         normal = ifelse(type == "Normal", 1, 0),
+         gender = capitalize(as.character(gender)))
+
+```
+
+### 4.1. Logistic regressions 
+
+```{r}
+
+# Logistic regressions 
+
+hateful_out <- glm(hateful ~ race + gender + party_id + race*gender + race*party_id, family = binomial(link = "logit"), data = df)
+
+```
+
+```{r}
+
+abusive_out <- glm(abusive ~ race + gender + party_id + race*gender + race*party_id, family = binomial(link = "logit"), data = df)
+
+```
+
+```{r}
+# Summary 
+
+summary(hateful_out)
+
+  ```
+
+```{r}
+summary(abusive_out)
+
+```
+
+```{r}
+# Save model objects
+
+write_rds(hateful_out, "/home/jae/bias-in-ml/twitter/processed_data/hateful_out.rds")
+write_rds(abusive_out, "/home/jae/bias-in-ml/twitter/processed_data/abusive_out.rds")
+
+```
+
+```{r}
+
+# Tidy model objects 
+
+models <- bind_rows(mutate(hateful_out %>% 
+  tidy(), Category = "Hateful"),
+          mutate(abusive_out %>%
+  tidy(), Category = "Abusive"))
+
+```
+
+```{r}
+
+# Function for interpretation 
+
+interpret_estimate <- function(model){
+    
+    # Control 
+    intercept <- model$estimate[model$term == "(Intercept)"]
+    control <- exp(intercept) / (1 + exp(intercept))
+    
+    # Likelihood 
+    model <- model %>% filter(term != "(Intercept)")
+    
+    model$likelihood <- (exp(model$estimate) / (1 - control + (control * exp(model$estimate))))
+    
+    return(model)
+}
+
+```
+
+```{r}
+
+interpret_estimate(models) %>%
+  filter(term != "(Intercept)") %>%
+  mutate(term = gsub("race|party_id|gender","", term)) %>%
+  ggplot(aes(x = fct_reorder(term, likelihood), y = likelihood, ymax = likelihood + 2*std.error, ymin = likelihood - 2*std.error, moe = std.error)) +
+  geom_pointrange() +
+  facet_wrap(~Category) +
+  coord_flip() +
+  labs(y = "Estimate", x = "",
+      title = "Logistic regression analysis",
+      subtitle = "Racial, gender, and intersectional bias",
+      caption = "Founta et al (2018) and the authors") +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  theme_pubr() 
+  
+ggsave("/home/jae/bias-in-ml/twitter/outputs/log_interpreted.png")
+
+```
+
+### 4.2. T-test with bootstapped samples 
+
+```{r}
+
+# For reproducibility 
+
+set.seed(1234)
+
+# Bootstrapping (with selected sample)
+
+boots1000 <- df %>%
+  filter(race != "Other") %>%
+  gather(type, value, c("abusive","hateful","normal")) %>%
+  group_by(race, gender) %>%
+  sample_n(1000) %>%
+  bootstrapify(1000) %>%
+  group_by(race, gender, type) %>%
+  summarise(
+    mean = mean(value),
+    lowCI = ci(value)[2],
+    hiCI = ci(value)[3])
+
+boots <- df %>%
+  filter(race != "Other") %>%
+  gather(type, value, c("abusive","hateful","normal")) %>%
+  group_by(race, gender) %>%
+  bootstrapify(1000) %>%
+  group_by(race, gender, type) %>%
+  summarise(
+    mean = mean(value),
+    lowCI = ci(value)[2],
+    hiCI = ci(value)[3])
+
+# Clean up 
+
+boots1000 <- boots1000 %>%
+  filter(race %in% c("White", "African American")) %>%
+  mutate(type = capitalize(type))
+
+boots <- boots %>%
+  filter(race %in% c("White", "African American")) %>%
+  mutate(type = capitalize(type))
+
+```
+
+```{r}
+
+gender_plot_boot <- boots %>%
+  unite(race_gender, c("race", "gender")) %>%
+  mutate(race_gender = str_replace(race_gender, "_", " ")) %>%
+  ggplot(aes(x = type, y = mean, fill = race_gender)) +
+    geom_col(position = "dodge") +
+    geom_errorbar(aes(ymax = hiCI, ymin = lowCI), position = "dodge") +
+    labs(title = "How race interacts with gender (with bootstrapping)", 
+         subtitle = "On the full data",
+         y = "Proportion", 
+         x = "Category",
+         fill = "Subgroup",
+         caption = "Founta et al. 2018 and the authors") +
+    theme_pubr() +
+    coord_flip() +
+    scale_fill_npg()
+
+ggsave("/home/jae/bias-in-ml/twitter/outputs/race_gender_boot.png", gender_plot_boot, width = 10)
+
+gender_plot_boot
+```
+
+```{r}
+
+gender_plot_boot1000 <- boots1000 %>%
+  unite(race_gender, c("race", "gender")) %>%
+  mutate(race_gender = str_replace(race_gender, "_", " ")) %>%
+  ggplot(aes(x = type, y = mean, fill = race_gender)) +
+    geom_col(position = "dodge") +
+    geom_errorbar(aes(ymax = hiCI, ymin = lowCI), position = "dodge") +
+    labs(title = "How race interacts with gender (with bootstrapping)", 
+         subtitle = "On a randomly selected sample (N = 1,000)",
+         y = "Proportion", 
+         x = "Category",
+         fill = "Subgroup",
+         caption = "Founta et al. 2018 and the authors") +
+    theme_pubr() +
+    coord_flip() +
+    scale_fill_npg()
+
+ggsave("/home/jae/bias-in-ml/twitter/outputs/race_gender_boot1000.png", gender_plot_boot1000, width = 10)
+
+ggarrange(gender_plot_boot, gender_plot_boot1000, ncol = 1, nrow = 2,
+          common.legend = TRUE)
+
+ggsave("/home/jae/bias-in-ml/twitter/outputs/desc_combined_boot.png", width = 10, height = 10)
+
+```
