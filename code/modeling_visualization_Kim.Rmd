@@ -318,10 +318,11 @@ interpret_estimate <- function(model){
 
 ```{r eval=FALSE, include=FALSE}
 
-interpret_estimate(models_full) %>%
+interpret_estimate(models) %>%
   filter(term != "(Intercept)") %>%
   mutate(term = gsub("race|party_ID|gender","", term)) %>%
-  ggplot(aes(x = fct_reorder(term, likelihood), y = likelihood, ymax = likelihood + 2*std.error, ymin = likelihood - 2*std.error, moe = std.error)) +
+  ggplot(aes(x = fct_reorder(term, likelihood), y = likelihood, ymax = likelihood + 2*std.error, ymin = likelihood - 2*std.error, moe = std.error, color = Models)) +
+  scale_color_npg() +
   geom_pointrange() +
   facet_wrap(~Category) +
   coord_flip() +
@@ -334,7 +335,7 @@ interpret_estimate(models_full) %>%
   
 ggsave("/home/jae/intersectional-bias-in-ml/outputs/log_interpreted.png",
        dpi = 600,
-       width = 6,
+       width = 7,
        height = 4)
 
 ```
