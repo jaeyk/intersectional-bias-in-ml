@@ -33,13 +33,12 @@ pacman::p_load(
         rsample, # for bootstrapping 
         purrr, # functional programming tools 
         strapgod, # for bootstrapping
-        gmodels # for confidence intervals 
+        gmodels, # for confidence intervals 
+        interplot # for visualizing interaction effects
         )
 
-# for visualizing uncertainty 
-devtools::install_github("wilkelab/ungeviz")
-
-library(ungeviz)
+conflicted::conflict_prefer("select", "dplyr")
+conflicted::conflict_prefer("filter", "dplyr")
 
 ```
 
@@ -65,14 +64,16 @@ party_ID_predictions <- read_csv("/home/jae/intersectional-bias-in-ml/processed_
 # Multi inner join 
 
 # Merge
-merged <- bind_cols(race_predictions %>% select(text, label, votes, race_bi, race_all, aae_count, wae_count), 
+merged <- bind_cols(
+          race_predictions %>% select(text, label, votes, race_bi, race_all, aae_count, wae_count), 
           gender_predictions %>% select(male, female, gender),
-          party_ID_predictions %>% select(party_ID))
+          party_ID_predictions %>% select(party_ID)
+          )
 
 # Explore the new object 
 glimpse(merged)
 
-names(merged)
+
 ```
 
 
@@ -225,22 +226,19 @@ ggsave("/home/jae/bias-in-ml/twitter/outputs/desc_combined.png", height = 5, wid
 df <- df %>%
   mutate(hateful = ifelse(label == "Hateful", 1, 0),
          abusive = ifelse(label == "Abusive", 1, 0),
-         normal = ifelse(label == "Normal", 1, 0),
-         gender = capitalize(as.character(gender)))
+         normal = ifelse(label == "Normal", 1, 0))
 
 ```
 
 ### Logistic regressions 
+
+#### Categorical variables 
 
 ```{r}
 
 # Logistic regressions 
 
 hateful_out <- glm(hateful ~ race + gender + party_ID + race*gender + race*party_ID, family = binomial(link = "logit"), data = df)
-
-```
-
-```{r}
 
 abusive_out <- glm(abusive ~ race + gender + party_ID + race*gender + race*party_ID, family = binomial(link = "logit"), data = df)
 
@@ -311,6 +309,43 @@ interpret_estimate(models) %>%
   theme_pubr() 
   
 ggsave("/home/jae/bias-in-ml/twitter/outputs/log_interpreted.png")
+
+```
+#### Continuous variables 
+
+```{r}
+
+# Remove stuff to increase memory 
+rm(gender_predictions, party_ID_predictions, race_predictions, merged, abusive_out, hateful_out)
+
+# Subset 
+test <- df %>% filter(race == "African American")
+
+test$aae_count <- test$aae_count %>% 
+  as.character() %>% 
+  as.numeric() %>% 
+  round(1)
+
+```
+
+```{r}
+
+hateful_out_aae <- glm(hateful ~ aae_count + gender + party_ID + aae_count*gender + aae_count*party_ID, family = binomial(link = "logit"), data = test)
+
+```
+
+```{r}
+
+inter_plot <- interplot(m = hateful_out_aae, 
+                        var1 = "genderMale", 
+                        var2 = "aae_count") 
+
+```
+
+```{r}
+
+inter_plot + labs(x = "African-American English Probability",
+                  y = "Male (1 = Yes, 0 = No)")
 
 ```
 
@@ -408,3 +443,4 @@ ggarrange(gender_plot_boot, gender_plot_boot1000, ncol = 1, nrow = 2,
 ggsave("/home/jae/bias-in-ml/twitter/outputs/desc_combined_boot.png", width = 10, height = 10)
 
 ```
+### 
