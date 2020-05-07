@@ -313,7 +313,7 @@ ggsave("/home/jae/bias-in-ml/twitter/outputs/log_interpreted.png")
 ```
 #### Continuous variables 
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 
 # Remove stuff to increase memory 
 rm(gender_predictions, party_ID_predictions, race_predictions, merged, abusive_out, hateful_out)
@@ -328,13 +328,13 @@ test$aae_count <- test$aae_count %>%
 
 ```
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 
 hateful_out_aae <- glm(hateful ~ aae_count + gender + party_ID + aae_count*gender + aae_count*party_ID, family = binomial(link = "logit"), data = test)
 
 ```
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 
 inter_plot <- interplot(m = hateful_out_aae, 
                         var1 = "genderMale", 
@@ -342,7 +342,7 @@ inter_plot <- interplot(m = hateful_out_aae,
 
 ```
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 
 inter_plot + labs(x = "African-American English Probability",
                   y = "Male (1 = Yes, 0 = No)")
