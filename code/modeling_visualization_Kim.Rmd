@@ -326,7 +326,7 @@ interpret_estimate(models) %>%
   geom_pointrange() +
   facet_wrap(~Category) +
   coord_flip() +
-  labs(y = "Estimate", x = "",
+  labs(y = "Likelihood", x = "",
       title = "Logistic regression analysis",
       subtitle = "Racial, gender, and intersectional bias",
       caption = "Founta et al (2018) and the authors") +
