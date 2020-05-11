@@ -15,7 +15,7 @@ output:
 
 # Clean up the environment
 
-#rm(list = ls())
+rm(list = ls())
 
 # Import pacakges 
 
@@ -35,7 +35,8 @@ pacman::p_load(
         strapgod, # for bootstrapping
         gmodels, # for confidence intervals 
         interplot, # for visualizing interaction effects
-        stargazer # for model reports  
+        stargazer, # for model reports  
+        conflicted # for resovling conflicts 
         )
 
 conflicted::conflict_prefer("select", "dplyr")
@@ -105,8 +106,8 @@ df <- merged %>% select(-text)
 
 df <- df %>%
   mutate(race = recode(race_bi, 
-                       `0` = "White", 
-                       `1` = "African American"),
+                       `1` = "White", 
+                       `0` = "African American"),
          party_ID = recode(party_ID, 
                        `1` = "Democrat",
                        `0` = "Republican"),
@@ -226,7 +227,7 @@ ggsave("/home/jae/intersectional-bias-in-ml/outputs/desc_combined.png",
        dpi = 600,
        width = 6,
        height = 4)
-
+  
 ```
 
 ## Modeling and visualization
@@ -238,7 +239,8 @@ ggsave("/home/jae/intersectional-bias-in-ml/outputs/desc_combined.png",
 df <- df %>%
   mutate(hateful = ifelse(label == "Hateful", 1, 0),
          abusive = ifelse(label == "Abusive", 1, 0),
-         normal = ifelse(label == "Normal", 1, 0))
+         normal = ifelse(label == "Normal", 1, 0),
+         black = ifelse(race == "African American", 1, 0))
 
 ```
 
@@ -249,13 +251,13 @@ df <- df %>%
 ```{r eval=FALSE, include=FALSE}
 
 # Logistic regressions 
-hateful_slim <- glm(hateful ~ race + gender + race*gender, family = binomial(link = "logit"), data = df)
+hateful_slim <- glm(hateful ~ black + gender + black*gender, family = binomial(link = "logit"), data = df)
   
-hateful_out <- glm(hateful ~ race + gender + party_ID + race*gender + race*party_ID, family = binomial(link = "logit"), data = df)
+hateful_out <- glm(hateful ~ black + gender + party_ID + black*gender + black*party_ID, family = binomial(link = "logit"), data = df)
 
-abusive_slim <- glm(abusive ~ race + gender + race*gender, family = binomial(link = "logit"), data = df)
+abusive_slim <- glm(abusive ~ black + gender + black*gender, family = binomial(link = "logit"), data = df)
   
-abusive_out <- glm(abusive ~ race + gender + party_ID + race*gender + race*party_ID, family = binomial(link = "logit"), data = df)
+abusive_out <- glm(abusive ~ black + gender + party_ID + black*gender + black*party_ID, family = binomial(link = "logit"), data = df)
 
 ```
 
@@ -319,8 +321,19 @@ interpret_estimate <- function(model){
 ```{r eval=FALSE, include=FALSE}
 
 interpret_estimate(models) %>%
+  filter(term != "(Intercept)") %>W%
+  mutate(term = gsub("race|party_ID|gender","", term)) %>%
+  mutate(term = str_replace_all(term, "black", "African American")) %>% 
+  knitr::kable()
+  
+```
+
+```{r eval=FALSE, include=FALSE}
+
+interpret_estimate(models) %>%
   filter(term != "(Intercept)") %>%
   mutate(term = gsub("race|party_ID|gender","", term)) %>%
+  mutate(term = str_replace_all(term, "black", "African American")) %>%
   ggplot(aes(x = fct_reorder(term, likelihood), y = likelihood, ymax = likelihood + 2*std.error, ymin = likelihood - 2*std.error, moe = std.error, color = Models)) +
   scale_color_npg() +
   geom_pointrange() +
