@@ -240,7 +240,8 @@ df <- df %>%
   mutate(hateful = ifelse(label == "Hateful", 1, 0),
          abusive = ifelse(label == "Abusive", 1, 0),
          normal = ifelse(label == "Normal", 1, 0),
-         black = ifelse(race == "African American", 1, 0))
+         black = ifelse(race == "African American", 1, 0),
+         White = ifelse(race != "African American", 1, 0))
 
 ```
 
@@ -253,11 +254,11 @@ df <- df %>%
 # Logistic regressions 
 hateful_slim <- glm(hateful ~ black + gender + black*gender, family = binomial(link = "logit"), data = df)
   
-hateful_out <- glm(hateful ~ black + gender + party_ID + black*gender + black*party_ID, family = binomial(link = "logit"), data = df)
+hateful_out <- glm(hateful ~ black + gender + party_ID + black*gender + White*party_ID, family = binomial(link = "logit"), data = df)
 
 abusive_slim <- glm(abusive ~ black + gender + black*gender, family = binomial(link = "logit"), data = df)
   
-abusive_out <- glm(abusive ~ black + gender + party_ID + black*gender + black*party_ID, family = binomial(link = "logit"), data = df)
+abusive_out <- glm(abusive ~ black + gender + party_ID + black*gender + White*party_ID, family = binomial(link = "logit"), data = df)
 
 ```
 
@@ -321,7 +322,7 @@ interpret_estimate <- function(model){
 ```{r eval=FALSE, include=FALSE}
 
 interpret_estimate(models) %>%
-  filter(term != "(Intercept)") %>W%
+  filter(term != "(Intercept)") %>%
   mutate(term = gsub("race|party_ID|gender","", term)) %>%
   mutate(term = str_replace_all(term, "black", "African American")) %>% 
   knitr::kable()
@@ -341,7 +342,6 @@ interpret_estimate(models) %>%
   coord_flip() +
   labs(y = "Likelihood", x = "",
       title = "Logistic regression analysis",
-      subtitle = "Racial, gender, and intersectional bias",
       caption = "Founta et al (2018) and the authors") +
   scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
   theme_pubr() 
@@ -352,6 +352,7 @@ ggsave("/home/jae/intersectional-bias-in-ml/outputs/log_interpreted.png",
        height = 4)
 
 ```
+
 #### Continuous variables 
 
 ```{r eval=FALSE, include=FALSE}
