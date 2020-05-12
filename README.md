@@ -19,14 +19,14 @@ For transparency and reproducibility, we only used publicly available datasets. 
 The Twitter dataset does not contain any information on the racial, gender, or partisan identities of the authors of these tweets. We utilized additional public datasets to classify and fill in the missing information. Our primary interest was the interaction between race and gender and whether that generated a biased distribution of hateful and abusive labels. Such an underlying data distribution would generate uneven false positive and negative rates for different groups. However, human annotators could be biased not only in terms of race and gender but also in terms of political affiliation. This is likely true if annotators were recruited in the United States, where political polarization is extreme. For this reason, we also classified party identification, the degree to which a person identifies with a particular political party. To be clear, what we classified were not the actual racial, gender, or partisan identities of the authors of these tweets. **The objective was to classify whether the language features expressed in a tweet were closer to the ones commonly expressed by one racial/gender/partisan group than those of other groups.**
 
 
-#### Text Classification
+### Text Classification
 
 - Race classification [[Jupyter Notebook](https://github.com/jaeyk/intersectional-bias-in-ml/blob/master/code/race_classification/code/race_classification_Santiago_Ortiz_Kim_reviewed.ipynb)]
 - Gender classification [[Jupyter Notebook](https://github.com/jaeyk/intersectional-bias-in-ml/blob/master/code/gender_classification_Nam_Kim_reviewed.ipynb)]
 - Party identification Classification [[Jupyter Notebook](https://github.com/jaeyk/intersectional-bias-in-ml/blob/master/code/party_ID_classification_Datta_Kim_reviewed.ipynb)]
 
 
-#### Data Analysis
+### Data Analysis
 
 The data analysis was correlational and thus, descriptive. We first described the bivariate relationship between race and gender and then added uncertainty about the measures using bootstrapping. We further investigated how the interaction between race and gender influences the distribution of hateful and abusive labels using logistic regression models. By taking a statistical modeling approach, we estimated the partial effect of the interaction bias on the outcomes while controlling for partisan bias.
 
