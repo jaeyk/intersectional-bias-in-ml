@@ -3,7 +3,7 @@
 
 **Intersectional Bias in Hate Speech and Abusive Language Datasets**
 
-- Slides: https://slides.com/jaeyeonkim/intersectional-bias-in-hate-speech-and-abusive-language-datasets/fullscreen (presented at the 2020 UC Berkeley Data Science Showcase)
+- Slides: https://slides.com/jaeyeonkim/intersectional-bias-in-hate-speech-and-abusive-language-datasets/fullscreen (presented at [the 2020 UC Berkeley Data Science Showcase](https://bids.berkeley.edu/events/spring-2020-data-science-showcase))
 
 ## Motivation
 
