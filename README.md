@@ -30,11 +30,32 @@ The data analysis was correlational and thus, descriptive. We first described th
 
 ## Results [[R Markdown](https://github.com/jaeyk/intersectional-bias-in-ml/blob/master/code/modeling_visualization_Kim.Rmd)]
 
+![](https://github.com/jaeyk/intersectional-bias-in-ml/blob/master/outputs/race_gender.png)
+Figure 1. Descriptive analysis
+
+Figure 1 displays the bivariate relationship between tweets classified by race and by gender.
+
+- African American tweets are more likely to be labeled as abusive than White tweets are.
+- African American male tweets are more likely to be labeled as hateful as compared to the other groups.
+
+![](https://github.com/jaeyk/intersectional-bias-in-ml/blob/master/outputs/race_gender_boot.png)
+Figure 2. Bootstrapping results
+
+One limitation of Figure 1 is that it does not show the uncertainty of the measures. Figure 2 addresses this problem by randomly resampling the data 1,00 times with replacement and stratifying on race, gender, and label type (bootstrapping). This figure reaffirms what we found earlier: African American tweets are overwhelmingly more likely to be labeled as abusive than their White counterparts. An opposite pattern is found in the normal label; White tweets are far more likely to be labeled as normal than their African American counterparts. These patterns are statistically significant because they are far outside confidence intervals. Gender difference matters little in these cases. By contrast, the intersection between race and gender matters in hate speech annotation. African American male tweets are far more likely to be labeled as hateful than the rest of the groups are. African American female tweets are only slightly more likely to be labeled as hateful than their White counterparts are.
+
+![](https://github.com/jaeyk/intersectional-bias-in-ml/blob/master/outputs/log_interpreted.png)
+Figure 3. Logistic regression analysis
+
+Figure 3 extends the previous investigation by adding party identification as a control variable. We constructed two logistic regression models. In both models, the dependent variable was an abusive or hateful category defined as dummy variables (yes = 1, no = 0). The first model did not involve party controls and its predictor variables were race, gender, and their interaction. The second model involved party controls and its predictor variables were race, gender, party identification, the intersection between race and gender, and the intersection between and race and party identification. In the figure, the results of the first model are indicated by light blue, and the second model by red dots.
+
+- **African American** language features are most likely to be labeled as **abusive**, and **African American male** language features are most likely to be labeled as **hateful**.
+- If tweets were associated with African American language features, the likelihood of these tweets to be labeled as abusive increased by up to 3.7 times.
+- If tweets were associated with African American male language features, the likelihood of these tweets to be labeled as hateful increased by up to 77%.
 
 ## Conclusion
 
-- This study provides the first systematic evidence on intersectional bias in datasets of hate speech and abusive language. More importantly, the finding that African American men are closely associated with hate speech is consistent with broad social science research on the criminalization of African American men.
+- This study provides the first systematic evidence on **intersectional bias** in datasets of **hate speech and abusive language**. More importantly, the finding that African American men are closely associated with hate speech is consistent with broad social science research on the criminalization of African American men.
 - Many caveats exist.
-  - The statistical model could be incomplete. The multivariate regression model is naive and likely to be underspecified. Missing variables in the model may cause selection bias. A better approach would be to design an experiment in which researchers could manipulate the source of biases---different types of language features---and directly examine their causal effects.
-  - The data could be inaccurate. This problem is particularly concerning because the magnitude of the intersectional bias is small. All of the key predictor variables were not directly observed but were based on machine-enabled text classification. Uncertainty in the data may not destabilize inference if the effect size is large enough; an increase of up to 3.7 times due to racial bias is difficult to remove. By contrast, an increase of up to 77% due to intersectional bias could be sensitive to measurement error.
+  - The statistical model could be **incomplete**. The multivariate regression model is naive and likely to be underspecified. Missing variables in the model may cause selection bias. A better approach would be to design an experiment in which researchers could manipulate the source of biases---different types of language features---and directly examine their causal effects.
+  - The data could be **inaccurate**. This problem is particularly concerning because the magnitude of the intersectional bias is small. All of the key predictor variables were not directly observed but were based on machine-enabled text classification. Uncertainty in the data may not destabilize inference if the effect size is large enough; an increase of up to 3.7 times due to racial bias is difficult to remove. By contrast, an increase of up to 77% due to intersectional bias could be sensitive to measurement error.
 - The findings reported here should not be taken at their face value and should be followed up with further investigation.
