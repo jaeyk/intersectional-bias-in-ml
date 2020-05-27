@@ -49,6 +49,13 @@ conflicted::conflict_prefer("filter", "dplyr")
 
 ```{r}
 
+# Model evals 
+
+gender_evals <- read_csv("/home/jae/intersectional-bias-in-ml/processed_data/eval_gender_models.csv") 
+  
+party_id_evals <- read_csv("/home/jae/intersectional-bias-in-ml/processed_data/eval_party_id_models .csv")
+  
+# Predicted data 
 race_predictions <- read_csv("/home/jae/intersectional-bias-in-ml/processed_data/race_predictions.csv")
 
 gender_predictions <- read_csv("/home/jae/intersectional-bias-in-ml/processed_data/gender_predictions.csv")
@@ -57,7 +64,18 @@ party_ID_predictions <- read_csv("/home/jae/intersectional-bias-in-ml/processed_
 
 ```
 
-## Merge datasets 
+## Model evals 
+
+```{r}
+
+binded_evals <- bind_rows(gender_evals, party_id_evals) %>%
+  select(-X1)
+
+print(xtable::xtable(binded_evals), include.rownames = FALSE)
+
+```
+
+## Merge predicted datasets 
 
 ### Merge 
 
