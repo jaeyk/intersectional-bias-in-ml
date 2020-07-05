@@ -177,23 +177,23 @@ df <- df %>%
 # How race interacts with gender
 
 gender_plot <- df %>%
-  group_by(race, gender, label) %>%
-  dplyr::summarize(n = n()) %>% 
-  mutate(prop = n / sum(n),
-         prop = round(prop,2)) %>% 
-  filter(label %in% c("Abusive", "Normal", "Hateful")) %>%
-  unite(race_gender, c("race", "gender")) %>%
-  mutate(race_gender = str_replace(race_gender, "_", " ")) %>%
-  ggplot(aes(x = race_gender, y = prop, fill = label)) +
-    geom_col(position = "fill") +
-    labs(title = "How race interacts with gender", 
-         y = "Proportion", 
-         x = "",
-         fill = "Label",
-         caption = "Founta et al. 2018 and the authors") +
-    theme_pubr() +
-    coord_flip() +
-    scale_fill_npg()
+    group_by(race, gender, label) %>%
+    dplyr::summarize(n = n()) %>% 
+    mutate(prop = n / sum(n),
+           prop = round(prop,2)) %>% 
+    filter(label %in% c("Abusive", "Normal", "Hateful")) %>%
+    unite(race_gender, c("race", "gender")) %>%
+    mutate(race_gender = str_replace(race_gender, "_", " ")) %>%
+    ggplot(aes(x = race_gender, y = prop, fill = label)) +
+        geom_col(position = "fill") +
+        labs(title = "How race interacts with gender", 
+             y = "Proportion", 
+             x = "",
+             fill = "Label",
+             caption = "Founta et al. 2018 and the authors") +
+        theme_pubr() +
+        coord_flip() +
+        scale_fill_npg()
 
 gender_plot 
 
@@ -209,23 +209,23 @@ ggsave("/home/jae/intersectional-bias-in-ml/outputs/race_gender.png", gender_plo
 # How race interacts with party ID
 
 party_plot <- df %>%
-  group_by(race, party_ID, label) %>%
-  dplyr::summarize(n = n()) %>% 
-  mutate(prop = n / sum(n),
-         prop = round(prop,2)) %>% 
-  filter(label %in% c("Abusive", "Normal", "Hateful")) %>%
-  unite(race_party, c("race", "party_ID")) %>%
-  mutate(race_party = str_replace(race_party, "_", " ")) %>%
-  ggplot(aes(x = race_party, y = prop, fill = label)) +
-    geom_col(position = "fill") +
-    labs(title = "How race interacts with party ID", 
-         y = "Proportion", 
-         x = "",
-         fill = "Label",
-         caption = "Founta et al. 2018 and the authors") +
-    theme_pubr() +
-    coord_flip() +
-    scale_fill_npg()
+    group_by(race, party_ID, label) %>%
+    dplyr::summarize(n = n()) %>% 
+    mutate(prop = n / sum(n),
+           prop = round(prop,2)) %>% 
+    filter(label %in% c("Abusive", "Normal", "Hateful")) %>%
+    unite(race_party, c("race", "party_ID")) %>%
+    mutate(race_party = str_replace(race_party, "_", " ")) %>%
+    ggplot(aes(x = race_party, y = prop, fill = label)) +
+        geom_col(position = "fill") +
+        labs(title = "How race interacts with party ID", 
+             y = "Proportion", 
+             x = "",
+             fill = "Label",
+             caption = "Founta et al. 2018 and the authors") +
+        theme_pubr() +
+        coord_flip() +
+        scale_fill_npg()
 
 party_plot 
 
@@ -255,11 +255,11 @@ ggsave("/home/jae/intersectional-bias-in-ml/outputs/desc_combined.png",
 # DVs
 
 df <- df %>%
-  mutate(hateful = ifelse(label == "Hateful", 1, 0),
-         abusive = ifelse(label == "Abusive", 1, 0),
-         normal = ifelse(label == "Normal", 1, 0),
-         black = ifelse(race == "African American", 1, 0),
-         White = ifelse(race != "African American", 1, 0))
+    mutate(hateful = ifelse(label == "Hateful", 1, 0),
+           abusive = ifelse(label == "Abusive", 1, 0),
+           normal = ifelse(label == "Normal", 1, 0),
+           black = ifelse(race == "African American", 1, 0),
+           White = ifelse(race != "African American", 1, 0))
 
 ```
 
