@@ -1,4 +1,0 @@
-,Models,Accuracy,Precision,Recall,Label
-0,Lasso,0.73,0.72,0.71,Party ID
-1,Bayes,0.71,0.72,0.66,Party ID
-2,XGBoost,0.7,0.7,0.67,Party ID
