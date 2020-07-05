@@ -1,7 +1,0 @@
-,Models,Accuracy,Precision,Recall,Label
-0,Lasso,0.69,0.68,0.73,Male
-1,Bayes,0.62,0.58,0.86,Male
-2,XGBoost,0.65,0.65,0.65,Male
-0,Lasso,0.73,0.73,0.77,Female
-1,Bayes,0.69,0.65,0.84,Female
-2,XGBoost,0.71,0.72,0.71,Female
