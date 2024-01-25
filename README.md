@@ -3,7 +3,6 @@
 
 **Intersectional Bias in Hate Speech and Abusive Language Datasets**
 
-- Slides: https://slides.com/jaeyeonkim/intersectional-bias-in-hate-speech-and-abusive-language-datasets/fullscreen (presented at [the ICWSM 2020 Data Challenge Workshop)](https://www.icwsm.org/2020/index.html))
 - Preprint: https://arxiv.org/abs/2005.05921
 
 ## Motivation
